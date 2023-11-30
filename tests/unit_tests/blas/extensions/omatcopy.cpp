@@ -63,7 +63,7 @@ int test(device *dev, oneapi::mkl::layout layout) {
     alpha = rand_scalar<fp>();
 
     if ((std::is_same<fp, float>::value) || (std::is_same<fp, double>::value)) {
-        trans = (oneapi::mkl::transpose)(std::rand() % 2);
+        trans = oneapi::mkl::transpose::nontrans;
     }
     else {
         tmp = std::rand() % 3;
