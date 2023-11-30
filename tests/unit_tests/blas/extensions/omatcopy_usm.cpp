@@ -81,7 +81,7 @@ int test(device *dev, oneapi::mkl::layout layout) {
     lda = std::max(m, n);
     ldb = std::max(m, n);
     alpha = rand_scalar<fp>();
-    trans = rand_trans<fp>();
+    trans = oneapi::mkl::transpose::trans;
 
     int64_t size_a, size_b;
     switch (layout) {
