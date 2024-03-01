@@ -164,6 +164,7 @@ endif()
 # This define is tuning portBLAS in header-only mode
 target_compile_definitions(PORTBLAS::portblas INTERFACE ${PORTBLAS_TUNING_TARGET})
 target_compile_definitions(PORTBLAS::portblas INTERFACE BLAS_ENABLE_COMPLEX=1)
+target_compile_definitions(PORTBLAS::portblas INTERFACE BLAS_ENABLE_HALF=1)
 target_compile_options(ONEMKL::SYCL::SYCL INTERFACE "-DSB_ENABLE_USM=ON")
 
 set(SOURCES
