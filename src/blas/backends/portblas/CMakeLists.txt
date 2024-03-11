@@ -147,7 +147,7 @@ if (NOT PORTBLAS_FOUND)
   FetchContent_Declare(
     portBLAS
     GIT_REPOSITORY https://github.com/OuadiElfarouki/sycl-blas.git
-    GIT_TAG        mixed_precision_gemm
+    GIT_TAG        mixed_precision_gemm_extended
   )
   FetchContent_MakeAvailable(portBLAS)
   message(STATUS "Looking for portBLAS - downloaded")
