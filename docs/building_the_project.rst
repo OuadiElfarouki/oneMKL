@@ -286,7 +286,7 @@ Building for oneMKL
 
      # Inside <path to onemkl>
      mkdir build && cd build
-     cmake .. [-DCMAKE_CXX_COMPILER=<path_to_dpcpp_compiler>/bin/dpcpp]  # required only if dpcpp is not found in environment variable PATH
+     cmake .. [-DCMAKE_CXX_COMPILER=<path_to_icpx_compiler>/bin/icpx]    # required only if icpx is not found in environment variable PATH
               [-DCMAKE_C_COMPILER=<path_to_icx_compiler>/bin/icx]        # required only if icx is not found in environment variable PATH
               [-DMKL_ROOT=<mkl_install_prefix>]                          # required only if environment variable MKLROOT is not set
               [-DREF_BLAS_ROOT=<reference_blas_install_prefix>]          # required only for testing
@@ -301,7 +301,7 @@ Building for oneMKL
 
      # Inside <path to onemkl>
      md build && cd build
-     cmake .. -G Ninja [-DCMAKE_CXX_COMPILER=<path_to_dpcpp_compiler>\bin\dpcpp]  # required only if dpcpp is not found in environment variable PATH
+     cmake .. -G Ninja [-DCMAKE_CXX_COMPILER=<path_to_icx_compiler>\bin\icx]      # required only if icx is not found in environment variable PATH
                        [-DCMAKE_C_COMPILER=<path_to_icx_compiler>\bin\icx]        # required only if icx is not found in environment variable PATH
                        [-DMKL_ROOT=<mkl_install_prefix>]                          # required only if environment variable MKLROOT is not set
                        [-DREF_BLAS_ROOT=<reference_blas_install_prefix>]          # required only for testing
@@ -367,16 +367,12 @@ With the cuBLAS backend:
    ctest
    cmake --install . --prefix <path_to_install_dir>                        # required to have full package structure
 
-To build with the cuRAND backend instead simply replace:
+
+The CuFFT and CuRAND backends can be enabled in a similar way to the CuBLAS backend, by setting the corresponding CMake variable(s) to `True`:
 
 .. code-block:: bash
 
-   -DENABLE_CUBLAS_BACKEND=True   \
-
-With:
-
-.. code-block:: bash
-
+   -DENABLE_CUFFT_BACKEND=True    \
    -DENABLE_CURAND_BACKEND=True   \
 
 
@@ -443,32 +439,13 @@ With the AMD rocBLAS backend:
    ctest
    cmake --install . --prefix <path_to_install_dir>                        # required to have full package structure
 
-To build with the rocRAND backend instead simply replace:
+The rocRAND, rocFFT, and rocSOLVER backends can be enabled in a similar way to the rocBLAS backend, by setting the corresponding CMake variable(s) to `True`:
 
 .. code-block:: bash
 
-   -DENABLE_ROCBLAS_BACKEND=True   \
-   -DTARGET_DOMAINS=blas
-
-With:
-
-.. code-block:: bash
-
-   -DENABLE_ROCRAND_BACKEND=True   \
-   -DTARGET_DOMAINS=rng
-
-To build with the rocSOLVER backend instead simply replace:
-
-.. code-block:: bash\
-
-   -DENABLE_ROCBLAS_BACKEND=True   \
-   -DTARGET_DOMAINS=blas
-With:
-
-.. code-block:: bash
-
+   -DENABLE_ROCRAND_BACKEND=True     \
+   -DENABLE_ROCFFT_BACKEND=True      \
    -DENABLE_ROCSOLVER_BACKEND=True   \
-   -DTARGET_DOMAINS=lapack
 
 **AMD GPU device architectures**  
 
@@ -481,11 +458,13 @@ A few often-used architectures are listed below:
 
    * - Architecture
      - AMD GPU name
+   * - gfx90a
+     - AMD Instinct(TM) MI210/250/250X Accellerator
+   * - gfx908
+     - AMD Instinct(TM) MI 100 Accelerator
    * - gfx906
      - | AMD Radeon Instinct(TM) MI50/60 Accelerator
        | AMD Radeon(TM) (Pro) VII Graphics Card
-   * - gfx908
-     - AMD Instinct(TM) MI 100 Accelerator
    * - gfx900
      - | Radeon Instinct(TM) MI 25 Accelerator
        | Radeon(TM) RX Vega 64/56 Graphics
@@ -534,17 +513,59 @@ definitions in 2 ways:
   `DPC++ User Manual <https://intel.github.io/llvm-docs/UsersManual.html>`_
   for more information on ``-fsycl-targets``.
 
+Building for portFFT
+^^^^^^^^^^^^^^^^^^^^^^
+
+Note the portFFT backend is experimental and currently only supports a
+subset of the operations and features.
+The portFFT backend uses the `portFFT <https://github.com/codeplaysoftware/portFFT>`_
+project as a header-only library.
+
+* On Linux*
+
+.. code-block:: bash
+
+   # Inside <path to onemkl>
+   mkdir build && cd build
+   cmake .. -DENABLE_PORTFFT_BACKEND=ON \
+            -DENABLE_MKLCPU_BACKEND=OFF  \
+            -DENABLE_MKLGPU_BACKEND=OFF  \
+            -DTARGET_DOMAINS=dft \
+            [-DPORTFFT_REGISTERS_PER_WI=128] \ # Example portFFT tuning parameter
+            [-DREF_BLAS_ROOT=<reference_blas_install_prefix>] \ # required only for testing
+            [-DPORTFFT_DIR=<path to portFFT install directory>]
+   cmake --build .
+   ./bin/test_main_dft_ct
+   cmake --install . --prefix <path_to_install_dir>
+
+
+portFFT will be downloaded automatically if not found.
+
+By default, the portFFT backend is not tuned for any specific device. The tuning flags are
+detailed in the `portFFT <https://github.com/codeplaysoftware/portFFT>`_ repository.
+The tuning parameters can be set at configuration time,
+with the above example showing how to set the tuning parameter
+``PORTFFT_REGISTERS_PER_WI``. Note that some tuning configurations may be incompatible
+with some targets.
+
+The portFFT library is compiled using the same ``-fsycl-targets`` as specified
+by the ``CMAKE_CXX_FLAGS``. If none are found, it will compile for
+``-fsycl-targets=nvptx64-nvidia-cuda,spir64``. To enable HIP targets,
+``HIP_TARGETS`` must be specified. See
+`DPC++ User Manual <https://intel.github.io/llvm-docs/UsersManual.html>`_
+for more information on ``-fsycl-targets``.
+
 
 Build Options
 ^^^^^^^^^^^^^
 
-When building oneMKL the SYCL implementation can be determined, by setting the
+When building oneMKL the SYCL implementation can be specified by setting the
 ``ONEMKL_SYCL_IMPLEMENTATION`` option. Possible values are:
 
 * ``dpc++`` (default) for the
   `Intel(R) oneAPI DPC++ Compiler <https://software.intel.com/en-us/oneapi/dpc-compiler>`_
-  and for the ``clang++`` from
-  `Intel project for LLVM* technology <https://github.com/intel/llvm/releases>`_ compilers.
+  and for the
+  `oneAPI DPC++ Compiler <https://github.com/intel/llvm>`_ compilers.
 * ``hipsycl`` for the `hipSYCL <https://github.com/illuhad/hipSYCL>`_ SYCL implementation.
 
 All options specified in the Conan section are available to CMake. You can
@@ -581,6 +602,10 @@ CMake.
      - True, False
      - False     
    * - *Not Supported*
+     - ENABLE_CUFFT_BACKEND
+     - True, False
+     - False     
+   * - *Not Supported*
      - ENABLE_CURAND_BACKEND
      - True, False
      - False     
@@ -592,12 +617,20 @@ CMake.
      - ENABLE_ROCBLAS_BACKEND
      - True, False
      - False     
+   * - *Not Supported*
+     - ENABLE_ROCFFT_BACKEND
+     - True, False
+     - False    
    * - enable_mklcpu_thread_tbb
      - ENABLE_MKLCPU_THREAD_TBB
      - True, False
      - True      
    * - *Not Supported*
      - ENABLE_PORTBLAS_BACKEND
+     - True, False
+     - False      
+   * - *Not Supported*
+     - ENABLE_PORTFFT_BACKEND
      - True, False
      - False      
    * - build_functional_tests
