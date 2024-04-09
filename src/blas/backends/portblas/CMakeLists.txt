@@ -146,8 +146,8 @@ if (NOT PORTBLAS_FOUND)
   set(FETCHCONTENT_BASE_DIR "${CMAKE_BINARY_DIR}/deps")
   FetchContent_Declare(
     portBLAS
-    GIT_REPOSITORY https://github.com/codeplaysoftware/portBLAS
-    GIT_TAG        master
+    GIT_REPOSITORY https://github.com/OuadiElfarouki/sycl-blas.git
+    GIT_TAG        mixed_precision_gemm_extended
   )
   FetchContent_MakeAvailable(portBLAS)
   message(STATUS "Looking for portBLAS - downloaded")
@@ -164,6 +164,7 @@ endif()
 # This define is tuning portBLAS in header-only mode
 target_compile_definitions(PORTBLAS::portblas INTERFACE ${PORTBLAS_TUNING_TARGET})
 target_compile_definitions(PORTBLAS::portblas INTERFACE BLAS_ENABLE_COMPLEX=1)
+target_compile_definitions(PORTBLAS::portblas INTERFACE BLAS_ENABLE_HALF=1)
 target_compile_options(ONEMKL::SYCL::SYCL INTERFACE "-DSB_ENABLE_USM=ON")
 
 set(SOURCES
